@@ -9,18 +9,11 @@ from lib.charts import add_hgroup_vol_size_chart
 from lib.charts import add_hgroup_vol_snapshot_chart
 from lib.logging import setup_logging
 from lib.send_mail import send_mail
-import argparse
-from argparse import RawTextHelpFormatter
 import xlsxwriter
 import json
 import sys
 
 settings = read_settings('settings.yml')
-
-email_from = settings.get('EMAIL_FROM', None)
-email_relay = settings.get('EMAIL_RELAY', None)
-email_subject = settings.get('EMAIL_SUBJECT', None)
-email_text = settings.get('EMAIL_TEXT', None)
 
 
 class ArrayHandler:
@@ -135,13 +128,9 @@ def main():
     handler.add_hgroup_charts()
     handler.close_workbook()
 
-    email_users = ''
-    if args.email:
-        email_users = args.email.split(',')
-
     text = ''' 
     This is the storage array report.
     '''
     if args.email:
-        send_mail(email_from, email_users, email_subject, email_text, files=[args.file],
-                  server=email_relay)
+        send_mail('jwoolf@purestorage.com', args.email, 'Pure Array Report', text, files=[args.file],
+                  server="127.0.0.1")

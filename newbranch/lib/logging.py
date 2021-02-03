@@ -53,7 +53,7 @@ def setup_logging(log_dir,console_error_level, file_error_level):
         print(now() + "Can not chdir to " + log_dir + " to set up logging.")
         sys.exit(1)
     logtime = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-    logfile = "array_annual." + logtime + '.log'
+    logfile = "ptargets." + logtime + '.log'
 
     file_error_level = eval("logging." + file_error_level)
     console_error_level = eval("logging." + console_error_level)
