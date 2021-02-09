@@ -2,13 +2,17 @@ from purestorage import FlashArray
 import urllib3
 import logging
 from datetime import datetime
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 urllib3_log = logging.getLogger("urllib3")
 urllib3_log.setLevel(logging.CRITICAL)
 logger = logging.getLogger('array_annual')
 import json
+import sys
 
 suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+
+
 def humansize(nbytes):
     i = 0
     while nbytes >= 1024 and i < len(suffixes) - 1:
@@ -20,8 +24,9 @@ def humansize(nbytes):
 
 class ArrayReport:
 
-    def __init__(self, address, token):
+    def __init__(self, address, token, name):
         self.client = FlashArray(address, api_token=token)
+        self.name = name
 
     def return_array_space(self, time):
         return self.client.get(space=True, historical=time)
@@ -83,8 +88,6 @@ class ArrayReport:
 
             for volume in self.groups[group]:
                 pass
-
-
 
     def calc_hgroups(self):
         logger.info("Calculating Host Group Data from Volume History")
@@ -151,7 +154,6 @@ class ArrayReport:
 
         self.calculated_hgroups = ret_out
 
-
     def build_series_data(self, group):
 
         volumes = self.groups[group]
@@ -167,7 +169,6 @@ class ArrayReport:
 
 
 def write_array_data(workbook, worksheet, data):
-
     logger.info("Writing Array data")
     bold = workbook.add_format({'bold': True})
     worksheet.write('A1', 'Array Totals', bold)
@@ -231,8 +232,44 @@ def write_hgroup_data(workbook, worksheet, data):
     }
     return ret
 
-def write_hgroup_vol_data(workbook, worksheet, data):
+def write_exec_data(workbook, worksheet, data):
+    logger.info("Writing Executive Data Sheet")
 
+    bold = workbook.add_format({'bold': True})
+
+    ret_vols = {}
+
+    col = 1
+    # row = 2
+    for group in data:
+
+        row = 2
+        worksheet.write(0, col, group, bold)
+        worksheet.write(1, col, 'Date', bold)
+        worksheet.write(1, col + 1, 'Total', bold)
+        worksheet.write(1, col + 2, 'Snapshots', bold)
+        worksheet.write(1, col + 3, 'Size', bold)
+        for each in data[group]:
+            total = round(each['total'] / 1024 / 1024 / 1024)
+            snapshots = round(each['snapshots'] / 1024 / 1024 / 1024)
+            size = round(each['size'] / 1024 / 1024 / 1024)
+
+            worksheet.write(row, col, each['date'])
+            worksheet.write(row, (col + 1), total)
+            worksheet.write(row, (col + 2), snapshots)
+            worksheet.write(row, (col + 3), size)
+            row += 1
+
+        ret_vols[group] = {
+            'dates': (2, col, row, col),
+            'total': (2, col + 1, row, col + 1),
+            'snapshots': (2, col + 2, row, col + 2),
+            'size': (2, col + 3, row, col + 3)
+        }
+        col += 5
+    return ret_vols
+
+def write_hgroup_vol_data(workbook, worksheet, data):
     logger.info("Writing Host Group Volume data")
 
     bold = workbook.add_format({'bold': True})
@@ -246,31 +283,128 @@ def write_hgroup_vol_data(workbook, worksheet, data):
         row = 2
         worksheet.write(0, col, volume, bold)
         worksheet.write(1, col, 'Date', bold)
-        worksheet.write(1, col +1, 'Total', bold)
-        worksheet.write(1, col +2, 'Snaps', bold)
-        worksheet.write(1, col +3, 'Size', bold)
+        worksheet.write(1, col + 1, 'Total', bold)
+        worksheet.write(1, col + 2, 'Snaps', bold)
+        worksheet.write(1, col + 3, 'Size', bold)
         for each in data[volume]:
-
             total = round(each['total'] / 1024 / 1024 / 1024)
-            snapshots = round(each['snapshots']/ 1024 / 1024 / 1024)
-            size = round(each['size']/ 1024 / 1024 / 1024)
+            snapshots = round(each['snapshots'] / 1024 / 1024 / 1024)
+            size = round(each['size'] / 1024 / 1024 / 1024)
 
             worksheet.write(row, col, each['time'])
-            worksheet.write(row, (col +1), total)
-            worksheet.write(row, (col +2), snapshots)
-            worksheet.write(row, (col +3), size)
-            row +=1
+            worksheet.write(row, (col + 1), total)
+            worksheet.write(row, (col + 2), snapshots)
+            worksheet.write(row, (col + 3), size)
+            row += 1
 
         ret_vols[volume] = {
-            'dates': (2, col, row, col) ,
-            'total': (2, col+1, row, col+1),
-            'snapshots': (2, col+2, row, col+2),
-            'size': (2, col+3, row, col+3)
+            'dates': (2, col, row, col),
+            'total': (2, col + 1, row, col + 1),
+            'snapshots': (2, col + 2, row, col + 2),
+            'size': (2, col + 3, row, col + 3)
         }
         col += 5
 
     return ret_vols
 
+
+def calculate_exec_report(arrRepClasses):
+    groupnames = set()
+    exec_data_all = []
+    for arrayReport in arrRepClasses:
+        exec_rec = {}
+        for group in arrayReport.calculated_hgroups:
+            groupnames.add(group)
+
+            exec_rec[group] = {}
+            for record in arrayReport.calculated_hgroups[group]:
+                dto = datetime.strptime(record['date'], '%Y-%m-%dT%H:%M:%SZ')
+                dto = dto.strftime("%m/%d/%Y")
+                exec_rec[group][dto] = record
+        exec_data_all.append(exec_rec)
+    #print(json.dumps(exec_data_all, indent=4))
+    #sys.exit()
+    '''
+    [
+        {
+            "DR-ESXi-HG": {
+                "02/06/2020": {
+                    "total": 69676015530,
+                    "snapshots": 0,
+                    "size": 9895604649984,
+                    "date": "2020-02-06T21:29:08Z"
+                },
+                "02/07/2020": {
+                    "total": 69708036900,
+                    "snapshots": 0,
+                    "size": 9895604649984,
+                    "date": "2020-02-07T21:29:08Z"
+                }
+    '''
+
+    groupnames = list(groupnames)
+
+    ret_data = {}
+    for search_group in groupnames:
+
+        ret_data[search_group] = {}
+        for array_recs in exec_data_all:
+
+            try:
+                # Groups match
+                for dt_ky in array_recs[search_group]:
+                    try:
+                        try:
+                            ret_data[search_group][dt_ky]['total'] += array_recs[search_group][dt_ky]['total']
+                            ret_data[search_group][dt_ky]['snapshots'] += array_recs[search_group][dt_ky]['snapshots']
+                            ret_data[search_group][dt_ky]['size'] += array_recs[search_group][dt_ky]['size']
+                        except:
+                            array_recs[search_group][dt_ky]['date'] = dt_ky
+                            ret_data[search_group][dt_ky] = array_recs[search_group][dt_ky]
+                    except:
+                        pass
+            except:
+                # Groups don't match
+                pass
+    # transform keys to timestamps
+    #print(json.dumps(ret_data, indent=4))
+    #sys.exit()
+    ret_out = {}
+    for group in ret_data:
+        ret_out[group] = {}
+        for dt in ret_data[group]:
+            logger.info(dt)
+            dto = datetime.strptime(dt, '%m/%d/%Y')
+            ts = dto.timestamp()
+
+            ret_out[group][ts] = ret_data[group][dt]
+    #print(json.dumps(ret_out, indent=4))
+    #sys.exit()
+    final_output = {}
+    for group in ret_out:
+
+        final_output[group] = []
+        kys = sorted(ret_out[group].keys())
+        num_keys = len(kys)
+        skip_num = num_keys / 11
+        skip_num = int(skip_num)
+        #logger.info("NUM_KEYS: " + str(num_keys))
+        #logger.info("SKIP NUM: " + str(skip_num))
+
+        ndx = 1
+        okeys = []
+        for ky in kys:
+            if ndx == skip_num:
+                okeys.append(ky)
+                logger.info("KY: " + str(ky))
+                ndx = 1
+            ndx += 1
+
+        for each in okeys:
+            final_output[group].append(ret_out[group][each])
+
+    return final_output
+    #print(json.dumps(final_output, indent=4))
 
 
 

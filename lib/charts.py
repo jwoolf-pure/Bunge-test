@@ -5,6 +5,7 @@ def add_array_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
+    chart.set_y_axis({'name': 'GBytes'})
 
     chart.add_series({
         'name': 'Total',
@@ -39,6 +40,7 @@ def add_hgroup_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
+    chart.set_y_axis({'name': 'GBytes'})
 
     chart.add_series({
         'name': 'Total',
@@ -66,6 +68,7 @@ def add_hgroup_vol_size_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
+    chart.set_y_axis({'name': 'GBytes'})
 
     for vol in range:
         series_title = vol + ' Used'
@@ -84,6 +87,7 @@ def add_hgroup_vol_snapshot_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
+    chart.set_y_axis({'name': 'GBytes'})
 
     for vol in range:
         series_title = vol + ' Snapshots'
@@ -98,6 +102,35 @@ def add_hgroup_vol_snapshot_chart(workbook, sheet, range, title):
     return chart
 
 
+def add_exec_chart(workbook, sheet, range, title):
+
+    chart = workbook.add_chart({'type': 'line'})
+    chart.set_title({'name': title})
+    chart.set_y_axis({'name': 'GBytes'})
+
+
+    chart.add_series({
+        'name': 'Total',
+        'categories': [sheet, range['dates'][0], range['dates'][1], range['dates'][2], range['dates'][3]],
+        'values': [sheet, range['total'][0], range['total'][1], range['total'][2], range['total'][3]],
+        'line': {'width': 2}
+    })
+
+    chart.add_series({
+        'name': 'Snapshots',
+        'categories': [sheet, range['dates'][0], range['dates'][1], range['dates'][2], range['dates'][3]],
+        'values': [sheet, range['snapshots'][0], range['snapshots'][1], range['snapshots'][2], range['snapshots'][3]],
+        'line': {'width': 2}
+    })
+
+    chart.add_series({
+        'name': 'Size',
+        'categories': [sheet, range['dates'][0], range['dates'][1], range['dates'][2], range['dates'][3]],
+        'values': [sheet, range['size'][0], range['size'][1], range['size'][2], range['size'][3]],
+        'line': {'width': 2}
+    })
+
+    return chart
 
 
 
