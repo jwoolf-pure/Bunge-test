@@ -396,7 +396,7 @@ def calculate_exec_report(arrRepClasses):
         for ky in kys:
             if ndx == skip_num:
                 okeys.append(ky)
-                logger.info("KY: " + str(ky))
+                # logger.info("KY: " + str(ky))
                 ndx = 1
             ndx += 1
 
