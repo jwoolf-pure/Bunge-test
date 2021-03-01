@@ -14,7 +14,9 @@ from lib.logging import setup_logging
 from lib.send_mail import send_mail
 import argparse
 from argparse import RawTextHelpFormatter
+from datetime import datetime
 import xlsxwriter
+
 import json
 import sys
 
@@ -34,7 +36,7 @@ class ArrayHandler:
         self.hgroup_ranges = {}
         self.hgroup_vol_ranges = {}
         self.workbook = xlsxwriter.Workbook(spreadsheet)
-        self.logger = setup_logging('.', 'DEBUG', 'DEBUG')
+        self.logger = setup_logging('./logs', 'DEBUG', 'DEBUG')
 
     def create_exec_sheets(self):
         self.exec_output = calculate_exec_report(self.arr_report)
@@ -116,6 +118,8 @@ class ArrayHandler:
         self.logger.info("Adding Executive Charts")
 
         row = 3
+        if self.exec_ranges == None:
+            return
         for group in self.exec_ranges:
             self.logger.info("Adding Executive Chart for: " + group)
             title = "Summary " + group
@@ -172,13 +176,7 @@ def main():
     handler.add_exec_charts()
     handler.close_workbook()
 
-
     if args.email:
         email_users = args.email.split(',')
-
-    text = ''' 
-    This is the storage array report.
-    '''
-    if args.email:
-        send_mail(email_from, email_users, email_subject, email_text, files=[args.file],
-                  server=email_relay)
+        send_mail(email_from, email_users, email_subject, email_text,
+                  files=[args.file], server=email_relay)

@@ -37,6 +37,8 @@ def trim_logs(logger, max_logs, log_dir):
 
 def setup_logging(log_dir,console_error_level, file_error_level):
 
+    os.getcwd()
+    cwd = ''
     if not os.path.isdir(log_dir):
         try:
             os.makedirs(log_dir)
@@ -48,6 +50,7 @@ def setup_logging(log_dir,console_error_level, file_error_level):
             print(now() + "Unknown error attempting to create " + log_dir + " directory.")
             sys.exit(1)
     try:
+        cwd = os.getcwd()
         os.chdir(log_dir)
     except OSError:
         print(now() + "Can not chdir to " + log_dir + " to set up logging.")
@@ -68,5 +71,10 @@ def setup_logging(log_dir,console_error_level, file_error_level):
     ch.setFormatter(formatter)
     logger.addHandler(fh)
     logger.addHandler(ch)
+    try:
+        os.chdir(cwd)
+    except:
+        print(now() + "Can no change dir back to project base.")
+        sys.exit(1)
 
     return logger

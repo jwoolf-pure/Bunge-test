@@ -3,7 +3,7 @@
 EMAIL_RELAY: localhost
 EMAIL_FROM: jwoolf@purestorage.com
 EMAIL_SUBJECT: 'Pure Storage Report'
-EMAIL_TEXT: 'This is the text in the email\n\nLets see if this works.'
+EMAIL_TEXT: 'Storage Capacity Report attached.'
 
 ARRAYS:
   -
@@ -13,4 +13,4 @@ ARRAYS:
   -
     name: "TestArray2"
     address: '10.21.167.70'
-    token: 'a222a925-8fc7-b6b4-f29d-cbfa9f8952a2'
+    token: '20f6fb24-8db1-cdec-db4c-a8f3a61af521'

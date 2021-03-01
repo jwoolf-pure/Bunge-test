@@ -5,7 +5,10 @@ def add_array_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
-    chart.set_y_axis({'name': 'GBytes'})
+    chart.set_y_axis({
+        'name': 'GBytes',
+        'num_format': '#,##0',
+    })
 
     chart.add_series({
         'name': 'Total',
@@ -40,7 +43,10 @@ def add_hgroup_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
-    chart.set_y_axis({'name': 'GBytes'})
+    chart.set_y_axis({
+        'name': 'GBytes',
+        'num_format': '#,##0',
+    })
 
     chart.add_series({
         'name': 'Total',
@@ -68,7 +74,10 @@ def add_hgroup_vol_size_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
-    chart.set_y_axis({'name': 'GBytes'})
+    chart.set_y_axis({
+        'name': 'GBytes',
+        'num_format': '#,##0',
+    })
 
     for vol in range:
         series_title = vol + ' Used'
@@ -87,7 +96,9 @@ def add_hgroup_vol_snapshot_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
-    chart.set_y_axis({'name': 'GBytes'})
+    chart.set_y_axis({
+        'name': 'GBytes',
+        'num_format': '#,##0',})
 
     for vol in range:
         series_title = vol + ' Snapshots'
@@ -106,11 +117,15 @@ def add_exec_chart(workbook, sheet, range, title):
 
     chart = workbook.add_chart({'type': 'line'})
     chart.set_title({'name': title})
-    chart.set_y_axis({'name': 'GBytes'})
+    chart.set_y_axis({
+        'name': 'GBytes',
+        'num_format': '#,##0',
+    })
 
+    #'num_format': '#,##0',
 
     chart.add_series({
-        'name': 'Total',
+        'name': 'Total Used after Optimization',
         'categories': [sheet, range['dates'][0], range['dates'][1], range['dates'][2], range['dates'][3]],
         'values': [sheet, range['total'][0], range['total'][1], range['total'][2], range['total'][3]],
         'line': {'width': 2}
@@ -124,7 +139,7 @@ def add_exec_chart(workbook, sheet, range, title):
     })
 
     chart.add_series({
-        'name': 'Size',
+        'name': 'Total Provisioned',
         'categories': [sheet, range['dates'][0], range['dates'][1], range['dates'][2], range['dates'][3]],
         'values': [sheet, range['size'][0], range['size'][1], range['size'][2], range['size'][3]],
         'line': {'width': 2}

@@ -1,7 +1,7 @@
 from purestorage import FlashArray
 import urllib3
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 urllib3_log = logging.getLogger("urllib3")
@@ -233,6 +233,8 @@ def write_hgroup_data(workbook, worksheet, data):
     return ret
 
 def write_exec_data(workbook, worksheet, data):
+    if not data:
+        return
     logger.info("Writing Executive Data Sheet")
 
     bold = workbook.add_format({'bold': True})
@@ -307,6 +309,34 @@ def write_hgroup_vol_data(workbook, worksheet, data):
 
     return ret_vols
 
+def find_first_of_next_month(month, day, year):
+    if month == 12:
+        month = 1
+        year +=1
+    else:
+        month += 1
+    day = 1
+    return datetime(month=month, day=day, year=year)
+
+def get_dates():
+
+    now = datetime.now()
+    delta = timedelta(days=365)
+    past = now - delta
+    year = past.strftime("%Y")
+    month = past.strftime("%m")
+    day = past.strftime("%d")
+    iterdate = find_first_of_next_month(int(month), int(day), int(year))
+
+    ret_dates = []
+    while iterdate < now:
+        ret_dates.append(iterdate)
+
+        iterdate = find_first_of_next_month(iterdate.month, iterdate.day,
+                                            iterdate.year)
+
+    ret_dates = [date.strftime('%m/%d/%Y') for date in ret_dates]
+    return ret_dates
 
 def calculate_exec_report(arrRepClasses):
     groupnames = set()
@@ -373,7 +403,7 @@ def calculate_exec_report(arrRepClasses):
     for group in ret_data:
         ret_out[group] = {}
         for dt in ret_data[group]:
-            logger.info(dt)
+            # logger.info(dt)
             dto = datetime.strptime(dt, '%m/%d/%Y')
             ts = dto.timestamp()
 
@@ -381,30 +411,39 @@ def calculate_exec_report(arrRepClasses):
     #print(json.dumps(ret_out, indent=4))
     #sys.exit()
     final_output = {}
+
+    now = datetime.now()
+
+    #logger.info(json.dumps(ret_out, indent=4))
     for group in ret_out:
 
         final_output[group] = []
-        kys = sorted(ret_out[group].keys())
-        num_keys = len(kys)
-        skip_num = num_keys / 11
-        skip_num = int(skip_num)
-        #logger.info("NUM_KEYS: " + str(num_keys))
-        #logger.info("SKIP NUM: " + str(skip_num))
+        dates = get_dates()
 
-        ndx = 1
-        okeys = []
-        for ky in kys:
-            if ndx == skip_num:
-                okeys.append(ky)
-                # logger.info("KY: " + str(ky))
-                ndx = 1
-            ndx += 1
+        for date in dates:
+            found = False
+            for ky in ret_out[group]:
+                #print(date)
+                #print(ret_out[group][ky]['date'])
+                #print('_______')
+                if ret_out[group][ky]['date'] == date:
+                    date_time_obj = datetime.strptime(ret_out[group][ky]['date'],
+                                                      '%m/%d/%Y')
+                    new_date_str = datetime.strftime(date_time_obj, '%b %d, %Y')
+                    ret_out[group][ky]['date'] = new_date_str
+                    final_output[group].append(ret_out[group][ky])
+                    found = True
+            if not found:
+                tmprec = {}
+                tmprec['date'] = date
 
-        for each in okeys:
-            final_output[group].append(ret_out[group][each])
+                date_time_obj = datetime.strptime(date,
+                                                  '%m/%d/%Y')
+                new_date_str = datetime.strftime(date_time_obj, '%b %d, %Y')
+                tmprec['date'] = new_date_str
 
+                tmprec['total'] = 0
+                tmprec['snapshots'] = 0
+                tmprec['size'] = 0
+                final_output[group].append(tmprec)
     return final_output
-    #print(json.dumps(final_output, indent=4))
-
-
-
