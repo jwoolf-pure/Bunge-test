@@ -234,7 +234,7 @@ def write_hgroup_data(workbook, worksheet, data):
 
 def write_exec_data(workbook, worksheet, data):
     if not data:
-        return
+        return None
     logger.info("Writing Executive Data Sheet")
 
     bold = workbook.add_format({'bold': True})
@@ -273,6 +273,10 @@ def write_exec_data(workbook, worksheet, data):
 
 def write_hgroup_vol_data(workbook, worksheet, data):
     logger.info("Writing Host Group Volume data")
+
+    if len(data) == 0:
+        logger.warning("write_hgroup_vol_data routine has no data.")
+        return None
 
     bold = workbook.add_format({'bold': True})
 
@@ -344,6 +348,8 @@ def calculate_exec_report(arrRepClasses):
     for arrayReport in arrRepClasses:
         exec_rec = {}
         for group in arrayReport.calculated_hgroups:
+            if len(arrayReport.calculated_hgroups[group]) == 0:
+                continue
             groupnames.add(group)
 
             exec_rec[group] = {}

@@ -11,7 +11,7 @@ def add_array_chart(workbook, sheet, range, title):
     })
 
     chart.add_series({
-        'name': 'Total',
+        'name': 'Total Used After Optimization',
         'categories': [sheet, range['dates'][0], range['dates'][1], range['dates'][2], range['dates'][3]],
         'values': [sheet, range['total'][0], range['total'][1], range['total'][2], range['total'][3]],
         'line': {'width': 2},
@@ -125,7 +125,7 @@ def add_exec_chart(workbook, sheet, range, title):
     #'num_format': '#,##0',
 
     chart.add_series({
-        'name': 'Total Used after Optimization',
+        'name': 'Total Used After Optimization',
         'categories': [sheet, range['dates'][0], range['dates'][1], range['dates'][2], range['dates'][3]],
         'values': [sheet, range['total'][0], range['total'][1], range['total'][2], range['total'][3]],
         'line': {'width': 2}

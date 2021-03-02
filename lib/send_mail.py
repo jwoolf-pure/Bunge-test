@@ -28,6 +28,6 @@ def send_mail(send_from, send_to, subject, text, files=None,
         part['Content-Disposition'] = 'attachment; filename="%s"' % basename(f)
         msg.attach(part)
 
-    smtp = smtplib.SMTP(server)
-    smtp.sendmail(send_from, send_to, msg.as_string())
-    smtp.close()
+    # smtp = smtplib.SMTP(server)
+    # smtp.sendmail(send_from, send_to, msg.as_string())
+    # smtp.close()

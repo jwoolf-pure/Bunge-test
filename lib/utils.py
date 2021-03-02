@@ -92,6 +92,9 @@ class ArrayHandler:
                 if len(sheet_name) > 31:
                     self.logger.warning("Worksheet named: " + sheet_name + " is too long.  Must be less than 31 chars.")
                     continue
+                if len(arrRep.calculated_hgroups[group]) == 0:
+                    self.logger.warning("No volumes for " + group)
+                    continue
                 worksheet = self.workbook.add_worksheet(sheet_name)
 
                 self.logger.info("Writing Host Group Data for: " + group)
@@ -119,11 +122,14 @@ class ArrayHandler:
 
         row = 3
         if self.exec_ranges == None:
-            return
+            return None
         for group in self.exec_ranges:
             self.logger.info("Adding Executive Chart for: " + group)
             title = "Summary " + group
             exec_chart = add_exec_chart(self.workbook, 'Executive Data', self.exec_ranges[group], title)
+            if not exec_chart:
+                self.logger.warning("Null return from add_exec_chart.")
+                continue
             cell = 'B' + str(row)
             self.exec_output_sheet.insert_chart(cell, exec_chart)
             row += 20
@@ -180,3 +186,4 @@ def main():
         email_users = args.email.split(',')
         send_mail(email_from, email_users, email_subject, email_text,
                   files=[args.file], server=email_relay)
+
