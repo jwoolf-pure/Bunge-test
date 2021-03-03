@@ -5,6 +5,8 @@ from lib.arrayreport import write_hgroup_data
 from lib.arrayreport import write_hgroup_vol_data
 from lib.arrayreport import write_exec_data
 from lib.arrayreport import calculate_exec_report
+from lib.arrayreport import get_dates
+from lib.arrayreport import find_first_of_next_month
 from lib.charts import add_array_chart
 from lib.charts import add_hgroup_chart
 from lib.charts import add_hgroup_vol_size_chart
@@ -59,9 +61,42 @@ class ArrayHandler:
             self.logger.info("Building data for storage array: " + str(arrRep.name))
 
             result = arrRep.return_array_space('1y')
+            #print(json.dumps(result, indent=4))
+
+            short_list = []
+            dates = get_dates()
+            for date in dates:
+                found = False
+                for item in result:
+                    try:
+                        time = datetime.strptime(item['time'], '%Y-%m-%dT%H:%M:%SZ')
+                        ctime = time.strftime('%m/%d/%Y')
+                        comp_time = time.strftime('%b %d, %Y')
+                    except:
+                        pass
+                    if ctime == date:
+                        found = True
+                        item['time'] = comp_time
+                        short_list.append(item)
+                if not found:
+                    time = datetime.strptime(date, '%m/%d/%Y')
+                    comp_time = time.strftime('%b %d, %Y')
+                    short_list.append({
+                        'time': comp_time,
+                        'hostname': arrRep.name,
+                        'provisioned': 0,
+                        'snapshots': 0,
+                        'total': 0,
+                        'capacity': 0
+                    })
+
+            #print(json.dumps(short_list, indent=4))
+            #print(dates)
+
+
             sheet_name = arrRep.name
             worksheet = self.workbook.add_worksheet(sheet_name)
-            ret = write_array_data(self.workbook, worksheet, result)
+            ret = write_array_data(self.workbook, worksheet, short_list)
             self.array_ranges[sheet_name] = ret
 
 
