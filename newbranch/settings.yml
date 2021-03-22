@@ -1,0 +1,16 @@
+---
+
+EMAIL_RELAY: localhost
+EMAIL_FROM: jwoolf@purestorage.com
+EMAIL_SUBJECT: 'Pure Storage Report'
+EMAIL_TEXT: 'Storage Capacity Report attached.'
+
+ARRAYS:
+  -
+    name: 'TestArray1'
+    address: '10.21.167.15'
+    token: 'd6df8f37-e6b7-7d93-029b-d94952b6020c'
+  -
+    name: "TestArray2"
+    address: '10.21.167.70'
+    token: '20f6fb24-8db1-cdec-db4c-a8f3a61af521'

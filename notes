@@ -1,0 +1,81 @@
+add docs on how to add new storage array to prometheus
+
+add docs on how to add new storage array to report script
+
+
+cd /opt/pure-report-script/Bunge-test
+source ./venv/bin/activate
+python ./array_annual.py --file output.xlsx --email tony.stolze@bunge.com
+
+#!/usr/bin/bash
+# set environment
+cd /opt/pure-report-script
+source /opt/pure-report-script/venv/bin/activate
+
+# start job
+python /opt/pure-report-script/array_annual.py --file <filename> --email me@foo.com
+
+
+suto appaccount
+cd /opt/prometheus
+nohup ./prometheus &
+rm nohup.out
+
+
+suto appaccount
+cd /opt/pure-exporter
+source ./venv/bin/activate
+gunicorn pure_exporter:app --bind=0.0.0.0:9491 --workers= --access-logfile=- --error-logfile=- --daemon
+
+
+# my global config
+
+global:
+
+  scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+
+  scrape_timeout: 25s
+
+  evaluation_interval: 59s # Evaluate rules every 15 seconds. The default is every 1 minute.
+
+  # scrape_timeout is set to the global default (10s).
+
+
+
+scrape_configs:
+# Job for all Pure Flasharrays
+- job_name: 'pure_flasharray'
+  metrics_path: /metrics/flasharray
+  relabel_configs:
+  # meta label of target address --> get parameter "pure_host"
+  - source_labels: [__address__]
+    target_label: __param_endpoint
+  # label of target api token --> get parameter "pure_apitoken"
+  - source_labels: [__pure_apitoken]
+    target_label: __param_apitoken
+  # display the pure host as the instance label
+  - source_labels: [__address__]
+    target_label: instance
+  # point the exporter to the scraping endpoint of the exporter
+  - target_label: __address__
+    replacement: localhost:9491 # address of the exporter, in debug mode
+                                # THIS NEEDS TO BE CHANGED TO YOUR ENVIRONMENT
+  # Actual pure hosts (without a prometheus endpoint) as targets
+  static_configs:
+
+  - targets: [ lilpure1 ]
+    labels:
+      __pure_apitoken: 4f64ef95-ab02-1052-1fd1-50436f5e930f
+
+  - targets: [ lilpure2 ]
+    labels:
+      __pure_apitoken: 4bfdd9eb-3d24-893f-77e0-44140729c64d
+
+  - targets: [ lilpure3 ]
+    labels:
+      __pure_apitoken: 56dc477e-b8f4-30be-f9b0-2535fba943a8
+
+  - targets: [ stlpure1 ]
+    labels:
+      __pure_apitoken: 1e9c98e1-736b-7a76-3a06-5bd249d80732
+
