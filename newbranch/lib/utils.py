@@ -200,7 +200,7 @@ class ArrayHandler:
         return self.hgroup_ranges
 
     def create_group_sheets(self):
-        self.logger.info("Creating Host Group Data Sheets")
+        self.logger.info("Creating Volume Group Data Sheets")
 
         for arrRep in self.arr_report:
             arrRep.calc_hgroups()
@@ -215,11 +215,11 @@ class ArrayHandler:
                     continue
                 worksheet = self.workbook.add_worksheet(sheet_name)
 
-                self.logger.info("Writing Host Group Data for: " + group)
+                self.logger.info("Writing Volume Group Data for: " + group)
                 ret = write_hgroup_data(self.workbook, worksheet, arrRep.calculated_vgroups[group])
                 self.hgroup_ranges[sheet_name] = ret
 
-                self.logger.info("Writing Host Group Volume Data for: " + group)
+                self.logger.info("Writing Volume Group Volume Data for: " + group)
                 ret_group_vols = arrRep.build_series_data(group)
                 ret = write_vgroup_vol_data(self.workbook, worksheet, ret_group_vols)
                 self.hgroup_vol_ranges[sheet_name] = ret
@@ -255,21 +255,21 @@ class ArrayHandler:
 
 
     def add_hgroup_charts(self):
-        self.logger.info("Adding Host Group Charts to Worksheets")
+        self.logger.info("Adding Volume Group Charts to Worksheets")
 
         row = 3
         for sheet in self.hgroup_ranges:
-            self.logger.info("Adding Host Group Chart for: " + sheet)
-            hgroup_chart = add_hgroup_chart(self.workbook, sheet, self.hgroup_ranges[sheet], sheet + " Host Group")
+            self.logger.info("Adding Volume Group Chart for: " + sheet)
+            hgroup_chart = add_hgroup_chart(self.workbook, sheet, self.hgroup_ranges[sheet], sheet + " Volume Group")
             cell = 'B' + str(row)
             self.hgroup_sheet.insert_chart(cell, hgroup_chart)
 
-            self.logger.info("Adding Host Group Vol Size Chart for: " + sheet)
+            self.logger.info("Adding Volume Group Vol Size Chart for: " + sheet)
             cell = 'L' + str(row)
             hgroup_vol_chart = add_hgroup_vol_size_chart(self.workbook, sheet, self.hgroup_vol_ranges[sheet], sheet + " Vol Sizes")
             self.hgroup_sheet.insert_chart(cell, hgroup_vol_chart)
 
-            self.logger.info("Adding Host Group Vol Snapshots Chart for: " + sheet)
+            self.logger.info("Adding Volume Group Vol Snapshots Chart for: " + sheet)
             cell = 'U' + str(row)
             hgroup_vol_chart = add_hgroup_vol_snapshot_chart(self.workbook, sheet, self.hgroup_vol_ranges[sheet], sheet + " Snapshot Sizes")
             self.hgroup_sheet.insert_chart(cell, hgroup_vol_chart)
