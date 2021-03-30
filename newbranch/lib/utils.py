@@ -2,7 +2,7 @@ from lib.return_yaml import read_settings
 from lib.arrayreport import ArrayReport
 from lib.arrayreport import write_array_data
 from lib.arrayreport import write_hgroup_data
-from lib.arrayreport import write_hgroup_vol_data
+from lib.arrayreport import write_vgroup_vol_data
 from lib.arrayreport import write_exec_data
 from lib.arrayreport import calculate_exec_report
 from lib.arrayreport import get_dates
@@ -16,7 +16,7 @@ from lib.logging import setup_logging
 from lib.send_mail import send_mail
 import argparse
 from argparse import RawTextHelpFormatter
-from datetime import datetime
+from datetime import datetime, timedelta
 import xlsxwriter
 
 import json
@@ -72,6 +72,9 @@ class ArrayHandler:
                         time = datetime.strptime(item['time'], '%Y-%m-%dT%H:%M:%SZ')
                         ctime = time.strftime('%m/%d/%Y')
                         comp_time = time.strftime('%b %d, %Y')
+
+                        # Add 80% series
+                        item['alert'] = item['capacity'] * .8
                     except:
                         pass
                     if ctime == date:
@@ -79,6 +82,28 @@ class ArrayHandler:
                         item['time'] = comp_time
                         short_list.append(item)
                 if not found:
+                    if datetime.now().strftime('%m/%d/%Y') == date:
+                        delta = timedelta(days=1)
+                        ndate = datetime.now() - delta
+                        ndate = ndate.strftime('%m/%d/%Y')
+                        for item in result:
+                            try:
+                                time = datetime.strptime(item['time'], '%Y-%m-%dT%H:%M:%SZ')
+                                ctime = time.strftime('%m/%d/%Y')
+                                comp_time = time.strftime('%b %d, %Y')
+
+                                # Add 80% series
+                                item['alert'] = item['capacity'] * .8
+                            except:
+                                pass
+                            if ctime == ndate:
+                                found = True
+                                item['time'] = comp_time
+                                short_list.append(item)
+                                break
+                        break
+
+
                     time = datetime.strptime(date, '%m/%d/%Y')
                     comp_time = time.strftime('%b %d, %Y')
                     short_list.append({
@@ -87,7 +112,8 @@ class ArrayHandler:
                         'provisioned': 0,
                         'snapshots': 0,
                         'total': 0,
-                        'capacity': 0
+                        'capacity': 0,
+                        'alert': 0
                     })
 
             #print(json.dumps(short_list, indent=4))
@@ -110,6 +136,63 @@ class ArrayHandler:
         self.logger.info("Closing Workbook")
         self.workbook.close()
 
+    def add_executive_sheet_text_data(self):
+        self.exec_sheet.set_column(11,11,90)
+        blue_fg = self.workbook.add_format()
+        red_fg = self.workbook.add_format()
+        green_fg = self.workbook.add_format()
+        blue_fg.set_font_color('blue')
+        red_fg.set_font_color('red')
+        green_fg.set_font_color('green')
+
+        self.exec_output_sheet.write(3, 11, 'Total used after optimization - Used storage per application after compression and deduplication is applied.', blue_fg)
+        self.exec_output_sheet.write(4, 11, 'Snapshots - Total storage used for snapshots of application volumes (used for quick recovery and DR)', red_fg)
+        self.exec_output_sheet.write(5, 11, 'Total Provisioned - Total requested space per application by owners', green_fg)
+
+        self.exec_output_sheet.write(7, 11, 'Local Snapshot Schedule')
+        self.exec_output_sheet.write(8, 11, 'Create a snapshot on source every 1 hours')
+        self.exec_output_sheet.write(9, 11, 'Retain all snapshots on source for 1 days')
+        self.exec_output_sheet.write(10, 11, 'Then retain 4 snapshots per day for 7 more days')
+
+        self.exec_output_sheet.write(12, 11, 'Replication Snapshot Schedule')
+        self.exec_output_sheet.write(13, 11, 'Replicate a snapshot to targets every 5 minutes')
+        self.exec_output_sheet.write(14, 11, 'Retain all snapshots on targets for 2 hours')
+        self.exec_output_sheet.write(15, 11, 'Then retain 4 snapshots per day for 2 more days')
+
+
+
+    def add_array_sheet_text_data(self):
+        self.array_sheet.set_column(11,11,90)
+        blue_fg = self.workbook.add_format()
+        red_fg = self.workbook.add_format()
+        green_fg = self.workbook.add_format()
+        magenta_fg = self.workbook.add_format()
+        purple_fg = self.workbook.add_format()
+        blue_fg.set_font_color('blue')
+        red_fg.set_font_color('red')
+        green_fg.set_font_color('green')
+        magenta_fg.set_font_color('magenta')
+        purple_fg.set_font_color('purple')
+
+        self.array_sheet.write(3, 11, 'Total used after optimization - Used storage including snapshots after compression and deduplication is applied.', red_fg)
+        self.array_sheet.write(4, 11, 'Snapshots - Total storage used for snapshots of application volumes (used for quick recovery and DR)', green_fg)
+        self.array_sheet.write(5, 11, 'Total Provisioned - Total requested space per application by owners', blue_fg)
+        self.array_sheet.write(6, 11, 'Capacity - Total Capacity of the Array', magenta_fg)
+        self.array_sheet.write(7, 11, 'Recommended usage limit - 80% of Total Capacity', purple_fg)
+
+        self.array_sheet.write(9, 11, 'Local Snapshot Schedule')
+        self.array_sheet.write(10, 11, 'Create a snapshot on source every 1 hours')
+        self.array_sheet.write(11, 11, 'Retain all snapshots on source for 1 days')
+        self.array_sheet.write(12, 11, 'then retain 4 snapshots per day for 7 more days')
+
+        self.array_sheet.write(14, 11, 'Replication Snapshot Schedule')
+        self.array_sheet.write(15, 11, 'Replicate a snapshot to targets every 5 minutes')
+        self.array_sheet.write(16, 11, 'Retain all snapshots on targets for 2 hours')
+        self.array_sheet.write(17, 11, 'then retain 4 snapshots per day for 2 more days')
+
+
+
+
     def return_arrays_ranges(self):
         return self.array_ranges
 
@@ -122,23 +205,23 @@ class ArrayHandler:
         for arrRep in self.arr_report:
             arrRep.calc_hgroups()
 
-            for group in arrRep.calculated_hgroups:
+            for group in arrRep.calculated_vgroups:
                 sheet_name = arrRep.name[0] + arrRep.name[-1] + '_' + group
                 if len(sheet_name) > 31:
                     self.logger.warning("Worksheet named: " + sheet_name + " is too long.  Must be less than 31 chars.")
                     continue
-                if len(arrRep.calculated_hgroups[group]) == 0:
+                if len(arrRep.calculated_vgroups[group]) == 0:
                     self.logger.warning("No volumes for " + group)
                     continue
                 worksheet = self.workbook.add_worksheet(sheet_name)
 
                 self.logger.info("Writing Host Group Data for: " + group)
-                ret = write_hgroup_data(self.workbook, worksheet, arrRep.calculated_hgroups[group])
+                ret = write_hgroup_data(self.workbook, worksheet, arrRep.calculated_vgroups[group])
                 self.hgroup_ranges[sheet_name] = ret
 
                 self.logger.info("Writing Host Group Volume Data for: " + group)
                 ret_group_vols = arrRep.build_series_data(group)
-                ret = write_hgroup_vol_data(self.workbook, worksheet, ret_group_vols)
+                ret = write_vgroup_vol_data(self.workbook, worksheet, ret_group_vols)
                 self.hgroup_vol_ranges[sheet_name] = ret
 
     def add_array_charts(self):
@@ -211,10 +294,12 @@ def main():
     handler.create_chart_sheets()
     handler.create_array_sheets()
     handler.add_array_charts()
+    handler.add_array_sheet_text_data()
     handler.create_group_sheets()
     handler.add_hgroup_charts()
     handler.create_exec_sheets()
     handler.add_exec_charts()
+    handler.add_executive_sheet_text_data()
     handler.close_workbook()
 
     if args.email:

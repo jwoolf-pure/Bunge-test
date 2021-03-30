@@ -21,7 +21,11 @@
   <component name="ChangeListManager">
     <list default="true" id="61084fa1-b67b-4579-b3df-4dcdd6e15806" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/send_mail.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib/send_mail.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newbranch/lib/arrayreport.py" beforeDir="false" afterPath="$PROJECT_DIR$/newbranch/lib/arrayreport.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newbranch/lib/charts.py" beforeDir="false" afterPath="$PROJECT_DIR$/newbranch/lib/charts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newbranch/lib/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/newbranch/lib/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/newbranch/output.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/newbranch/output.xlsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output.xlsx" beforeDir="false" afterPath="$PROJECT_DIR$/output.xlsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,7 +114,10 @@
       <workItem from="1608667303769" duration="215925000" />
       <workItem from="1614098175686" duration="40887000" />
       <workItem from="1614803150951" duration="6222000" />
-      <workItem from="1615445033242" duration="6691000" />
+      <workItem from="1615445033242" duration="7292000" />
+      <workItem from="1616702935492" duration="50000" />
+      <workItem from="1616703010976" duration="51000" />
+      <workItem from="1616703222610" duration="15160000" />
     </task>
     <servers />
   </component>
@@ -135,10 +142,10 @@
     </state>
     <state x="-2037" y="-1434" key="#com.intellij.execution.impl.EditConfigurationsDialog/-3840.-1529.3840.2137/0.23.1792.1042@-3840.-1529.3840.2137" timestamp="1611601444882" />
     <state x="486" y="212" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.23.1792.1042@0.23.1792.1042" timestamp="1611366247798" />
-    <state x="-1138" y="-241" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1614805250071">
+    <state x="-1138" y="-241" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1616441570175">
       <screen x="-3840" y="-1529" width="3840" height="2057" />
     </state>
-    <state x="-1138" y="-241" key="#com.intellij.fileTypes.FileTypeChooser/-3840.-1529.3840.2057/0.23.1792.1097@-3840.-1529.3840.2057" timestamp="1614805250071" />
+    <state x="-1138" y="-241" key="#com.intellij.fileTypes.FileTypeChooser/-3840.-1529.3840.2057/0.23.1792.1097@-3840.-1529.3840.2057" timestamp="1616441570175" />
     <state x="795" y="285" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1612224358820">
       <screen x="0" y="23" width="1792" height="1037" />
     </state>

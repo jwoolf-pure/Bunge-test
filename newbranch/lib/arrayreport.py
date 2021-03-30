@@ -32,7 +32,7 @@ class ArrayReport:
     def return_array_space(self, time):
         return self.client.get(space=True, historical=time)
 
-    def return_host_groups(self):
+    def return_volume_groups(self):
         return self.client.list_vgroups()
         #return self.client.list_hgroups(connect=True)
 
@@ -40,8 +40,8 @@ class ArrayReport:
         self.vnames = [rec['name'] for rec in self.client.list_vgroups()]
 
     def set_volumes(self):
-        logger.info("Grouping Volumes by Host Group")
-        data = self.return_host_groups()
+        logger.info("Grouping Volumes by Volume Group")
+        data = self.return_volume_groups()
 
         self.groups = {}
 
@@ -66,10 +66,10 @@ class ArrayReport:
         #print(json.dumps(self.groups, indent=4))
         #sys.exit()
         self.vol_history = {}
-        self.hostg_vol = {}
+        self.vol_group_vol = {}
         for group in self.groups:
 
-            self.hostg_vol[group] = {}
+            self.vol_group_vol[group] = {}
             for vol_name in self.groups[group]:
                 try:
                     vol_hist = self.client.get_volume(vol_name, space=True, historical='1y')
@@ -85,8 +85,8 @@ class ArrayReport:
                             vol_entry['size'] = 0
                         tmphist[vol_entry['time']] = vol_entry
                     self.vol_history[vol_name] = tmphist
-                    self.hostg_vol[group][vol_name] = vol_hist
-                    # self.hostg_vol[group][vol['name']] = tmphist
+                    self.vol_group_vol[group][vol_name] = vol_hist
+                    # self.vol_group_vol[group][vol['name']] = tmphist
 
 
                 except Exception as e:
@@ -102,7 +102,7 @@ class ArrayReport:
                 pass
 
     def calc_hgroups(self):
-        logger.info("Calculating Host Group Data from Volume History")
+        logger.info("Calculating Volume Group Data from Volume History")
         self.get_historical()
 
         self.all_gps = {}
@@ -112,7 +112,7 @@ class ArrayReport:
 
             # Find all the sample times
             # First get a set of all times that exist for volumes
-            # in this host group
+            # in this volume group
             times = set()
             for volume in self.groups[group]:
                 try:
@@ -164,7 +164,7 @@ class ArrayReport:
                 for tstamp in sorted(self.oput[group].keys()):
                     ret_out[group].append(self.oput[group][tstamp])
 
-        self.calculated_hgroups = ret_out
+        self.calculated_vgroups = ret_out
 
     def build_series_data(self, group):
 
@@ -173,7 +173,7 @@ class ArrayReport:
 
         for volume in volumes:
             try:
-                ret_data[volume] = self.hostg_vol[group][volume]
+                ret_data[volume] = self.vol_group_vol[group][volume]
             except:
                 pass
 
@@ -189,6 +189,7 @@ def write_array_data(workbook, worksheet, data):
     worksheet.write('C2', 'Snapshots', bold)
     worksheet.write('D2', 'Provisioned', bold)
     worksheet.write('E2', 'Capacity', bold)
+    worksheet.write('F2', '80 Percent of Capacity', bold)
 
     row = 2
     for each in data:
@@ -196,12 +197,14 @@ def write_array_data(workbook, worksheet, data):
         snapshots = round(each['snapshots'] / 1024 / 1024 / 1024, 2)
         provisioned = round(each['provisioned'] / 1024 / 1024 / 1024, 2)
         capacity = round(each['capacity'] / 1024 / 1024 / 1024, 2)
+        alert = round(each['alert'] / 1024 / 1024 / 1024, 2)
 
         worksheet.write(row, 0, each['time'])
         worksheet.write_number(row, 1, total)
         worksheet.write(row, 2, snapshots)
         worksheet.write(row, 3, provisioned)
         worksheet.write(row, 4, capacity)
+        worksheet.write(row, 5, alert)
         row += 1
 
     ret = {
@@ -210,6 +213,7 @@ def write_array_data(workbook, worksheet, data):
         'snapshots': (2, 2, row, 2),
         'provisioned': (2, 3, row, 3),
         'capacity': (2, 4, row, 4),
+        'alert': (2, 5, row, 5),
     }
 
     return ret
@@ -218,7 +222,7 @@ def write_array_data(workbook, worksheet, data):
 def write_hgroup_data(workbook, worksheet, data):
     bold = workbook.add_format({'bold': True})
 
-    worksheet.write('A1', 'Host Group Totals')
+    worksheet.write('A1', 'Volume Group Totals')
     worksheet.write('A2', 'Date', bold)
     worksheet.write('B2', 'Snapshots', bold)
     worksheet.write('C2', 'Size', bold)
@@ -283,11 +287,11 @@ def write_exec_data(workbook, worksheet, data):
         col += 5
     return ret_vols
 
-def write_hgroup_vol_data(workbook, worksheet, data):
-    logger.info("Writing Host Group Volume data")
+def write_vgroup_vol_data(workbook, worksheet, data):
+    logger.info("Writing Volume Group Volume data")
 
     if len(data) == 0:
-        logger.warning("write_hgroup_vol_data routine has no data.")
+        logger.warning("write_vgroup_vol_data routine has no data.")
         return None
 
     bold = workbook.add_format({'bold': True})
@@ -351,7 +355,9 @@ def get_dates():
         iterdate = find_first_of_next_month(iterdate.month, iterdate.day,
                                             iterdate.year)
 
+
     ret_dates = [date.strftime('%m/%d/%Y') for date in ret_dates]
+    ret_dates.append(now.strftime('%m/%d/%Y'))
     return ret_dates
 
 def calculate_exec_report(arrRepClasses):
@@ -359,13 +365,13 @@ def calculate_exec_report(arrRepClasses):
     exec_data_all = []
     for arrayReport in arrRepClasses:
         exec_rec = {}
-        for group in arrayReport.calculated_hgroups:
-            if len(arrayReport.calculated_hgroups[group]) == 0:
+        for group in arrayReport.calculated_vgroups:
+            if len(arrayReport.calculated_vgroups[group]) == 0:
                 continue
             groupnames.add(group)
 
             exec_rec[group] = {}
-            for record in arrayReport.calculated_hgroups[group]:
+            for record in arrayReport.calculated_vgroups[group]:
                 dto = datetime.strptime(record['date'], '%Y-%m-%dT%H:%M:%SZ')
                 dto = dto.strftime("%m/%d/%Y")
                 exec_rec[group][dto] = record
@@ -441,9 +447,6 @@ def calculate_exec_report(arrRepClasses):
         for date in dates:
             found = False
             for ky in ret_out[group]:
-                #print(date)
-                #print(ret_out[group][ky]['date'])
-                #print('_______')
                 if ret_out[group][ky]['date'] == date:
                     date_time_obj = datetime.strptime(ret_out[group][ky]['date'],
                                                       '%m/%d/%Y')
@@ -452,6 +455,21 @@ def calculate_exec_report(arrRepClasses):
                     final_output[group].append(ret_out[group][ky])
                     found = True
             if not found:
+                if datetime.now().strftime('%m/%d/%Y')  == date:
+                    delta = timedelta(days=1)
+                    ndate = datetime.now() - delta
+                    ndate = ndate.strftime('%m/%d/%Y')
+                    for ky in ret_out[group]:
+                        if ret_out[group][ky]['date'] == ndate:
+                            date_time_obj = datetime.strptime(ret_out[group][ky]['date'],
+                                                              '%m/%d/%Y')
+                            new_date_str = datetime.strftime(date_time_obj, '%b %d, %Y')
+                            ret_out[group][ky]['date'] = new_date_str
+                            final_output[group].append(ret_out[group][ky])
+                            break
+                    break
+
+
                 tmprec = {}
                 tmprec['date'] = date
 
