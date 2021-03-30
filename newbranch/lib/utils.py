@@ -52,7 +52,7 @@ class ArrayHandler:
 
         self.exec_output_sheet = self.workbook.add_worksheet('Executive_Report')
         self.array_sheet = self.workbook.add_worksheet('Array_Sheet')
-        self.hgroup_sheet = self.workbook.add_worksheet('Host_Group_Sheet')
+        self.hgroup_sheet = self.workbook.add_worksheet('Volume_Group_Sheet')
 
     def create_array_sheets(self):
         self.logger.info("Creating Array Data Sheets")
@@ -248,9 +248,11 @@ class ArrayHandler:
             if not exec_chart:
                 self.logger.warning("Null return from add_exec_chart.")
                 continue
+            self.exec_output_sheet.write(row, 2, group)
+            row += 1
             cell = 'B' + str(row)
             self.exec_output_sheet.insert_chart(cell, exec_chart)
-            row += 20
+            row += 21
 
 
 
