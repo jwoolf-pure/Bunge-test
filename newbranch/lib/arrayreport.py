@@ -248,6 +248,42 @@ def write_hgroup_data(workbook, worksheet, data):
     }
     return ret
 
+def write_exec_list_data(workbook, worksheet, data):
+    if not data:
+        return None
+    logger.info("Writing Executive List Sheet")
+    bold = workbook.add_format({'bold': True})
+
+    row = 1
+
+    worksheet.set_column("A:A", 15)
+    worksheet.set_column("B:B", 35)
+    worksheet.set_column("C:C", 25)
+    worksheet.set_column("D:D", 12)
+    worksheet.set_column("E:E", 12)
+
+    worksheet.write(0, 0, 'Date', bold)
+    worksheet.write(0, 1, 'Application', bold)
+    worksheet.write(0, 2, 'Total Used After Optimization', bold)
+    worksheet.write(0, 3, 'Snapshots', bold)
+    worksheet.write(0, 4, 'Total Provisioned', bold)
+    for group in data:
+
+        for each in data[group]:
+            total = round(each['total'] / 1024 / 1024 / 1024)
+            snapshots = round(each['snapshots'] / 1024 / 1024 / 1024)
+            size = round(each['size'] / 1024 / 1024 / 1024)
+
+            worksheet.write(row, 0, each['date'])
+            worksheet.write(row, 1, group)
+            worksheet.write(row, 2, total)
+            worksheet.write(row, 3, snapshots)
+            worksheet.write(row, 4, size)
+
+            row += 1
+        row +=1
+
+
 def write_exec_data(workbook, worksheet, data):
     if not data:
         return None
@@ -437,6 +473,7 @@ def calculate_exec_report(arrRepClasses):
     final_output = {}
 
     now = datetime.now()
+
 
     #logger.info(json.dumps(ret_out, indent=4))
     for group in ret_out:

@@ -5,6 +5,7 @@ from lib.arrayreport import write_hgroup_data
 from lib.arrayreport import write_vgroup_vol_data
 from lib.arrayreport import write_exec_data
 from lib.arrayreport import calculate_exec_report
+from lib.arrayreport import write_exec_list_data
 from lib.arrayreport import get_dates
 from lib.arrayreport import find_first_of_next_month
 from lib.charts import add_array_chart
@@ -46,13 +47,19 @@ class ArrayHandler:
         ret = write_exec_data(self.workbook, self.exec_sheet, self.exec_output)
         self.exec_ranges = ret
 
+        ret = write_exec_list_data(self.workbook, self.exec_list_view_sheet, self.exec_output)
+
 
     def create_chart_sheets(self):
         self.logger.info("Creating Chart Sheets")
 
         self.exec_output_sheet = self.workbook.add_worksheet('Executive_Report')
+        self.exec_list_view_sheet = self.workbook.add_worksheet('Executive_List_view')
         self.array_sheet = self.workbook.add_worksheet('Array_Sheet')
         self.hgroup_sheet = self.workbook.add_worksheet('Volume_Group_Sheet')
+        self.exec_output_sheet.set_tab_color('green')
+        self.exec_list_view_sheet.set_tab_color('green')
+        self.array_sheet.set_tab_color('green')
 
     def create_array_sheets(self):
         self.logger.info("Creating Array Data Sheets")
